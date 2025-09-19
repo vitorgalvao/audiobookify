@@ -116,8 +116,8 @@ readonly audio_files=("${(@f)$(/usr/bin/find -s "${input}" -depth 1 -iname '*.mp
 [[ -n "${audio_files}" ]] || error "No audio files found in: ${input}"
 
 # Try to extract metadata when not given
-[[ -z "${title}" ]] && readonly title="$(ffprobe -loglevel quiet -output_format csv=p=0 -show_entries format_tags=title "${audio_files[1]}")"
-[[ -z "${author}" ]] && readonly author="$(ffprobe -loglevel quiet -output_format csv=p=0 -show_entries format_tags=artist "${audio_files[1]}")"
+[[ -z "${title}" ]] && readonly title="$(ffprobe -loglevel quiet -output_format compact=p=0:nokey=1 -show_entries format_tags=title "${audio_files[1]}")"
+[[ -z "${author}" ]] && readonly author="$(ffprobe -loglevel quiet -output_format compact=p=0:nokey=1 -show_entries format_tags=artist "${audio_files[1]}")"
 
 if [[ -z "${cover}" ]]
 then
@@ -135,7 +135,7 @@ do
 
   # Add to chapter list
   printf '%s %s\n' "${current_time}" "$(basename "${audio_file%.*}")" >> "${chapters_list}"
-  audio_duration="$(ffprobe -loglevel quiet -output_format csv=p=0 -show_entries format=duration -sexagesimal "${audio_file}")"
+  audio_duration="$(ffprobe -loglevel quiet -output_format compact=p=0:nokey=1 -show_entries format=duration -sexagesimal "${audio_file}")"
   current_time="$(timecalc "${current_time} + ${audio_duration}")"
 done
 
@@ -143,7 +143,7 @@ done
 ffmpeg -hide_banner -f concat -safe 0 -i "${audio_list}" -codec copy "${joined_audio}"
 
 # Get bitrate of concatenated file
-readonly joined_bitrate="$(ffprobe -loglevel quiet -output_format csv=p=0 -show_entries format=bit_rate "${joined_audio}")"
+readonly joined_bitrate="$(ffprobe -loglevel quiet -output_format compact=p=0:nokey=1 -show_entries format=bit_rate "${joined_audio}")"
 
 # Convert to m4b
 ffmpeg -hide_banner -i "${joined_audio}" -codec:a aac -b:a "${joined_bitrate}" "${converted_audio}"
